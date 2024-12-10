@@ -1,9 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-const { table } = require('console');
 
 let input = fs
-    .readFileSync(path.join(__dirname, 'message.txt'), 'utf8')
+    .readFileSync(path.join(__dirname, 'input.txt'), 'utf8')
     .toString()
     .trim();
 
