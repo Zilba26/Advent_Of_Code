@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { log } = require('console');
 
 const input = fs
     .readFileSync(path.join(__dirname, 'input.txt'), 'utf8')
@@ -12,25 +13,29 @@ module.exports = {
     input,
 };
 
-function getZone(i, j, tab) {
+function getZone(i, j, tab, forceLetter) {
     const letter = tab[i][j];
     let zone = [[i, j]];
     indexTreated.push(i + "-" + j);
     if (i > 0 && !indexTreated.includes((i-1) + "-" + j)) {
         const nextLetter = tab[i-1][j];
-        if (nextLetter === letter) zone = zone.concat(getZone(i - 1, j, tab));
+        if (nextLetter === letter) zone = zone.concat(getZone(i - 1, j, tab, forceLetter));
+        else if (forceLetter && nextLetter != forceLetter) zone = zone.concat(-1);
     }
     if (j > 0 && !indexTreated.includes(i + "-" + (j-1))) {
         const nextLetter = tab[i][j-1];
-        if (nextLetter === letter) zone = zone.concat(getZone(i, j - 1, tab));
+        if (nextLetter === letter) zone = zone.concat(getZone(i, j - 1, tab, forceLetter));
+        else if (forceLetter && nextLetter != forceLetter) zone = zone.concat(-1);
     }
     if (i < tab.length - 1 && !indexTreated.includes((i+1) + "-" + j)) {
         const nextLetter = tab[i+1][j];
-        if (nextLetter === letter) zone = zone.concat(getZone(i + 1, j, tab));
+        if (nextLetter === letter) zone = zone.concat(getZone(i + 1, j, tab, forceLetter));
+        else if (forceLetter && nextLetter != forceLetter) zone = zone.concat(-1);
     }
     if (j < tab[i].length - 1 && !indexTreated.includes(i + "-" + (j+1))) {
         const nextLetter = tab[i][j+1];
-        if (nextLetter === letter) zone = zone.concat(getZone(i, j+1, tab));
+        if (nextLetter === letter) zone = zone.concat(getZone(i, j+1, tab, forceLetter));
+        else if (forceLetter && nextLetter != forceLetter) zone = zone.concat(-1);
     }
     return zone
 }
@@ -41,6 +46,21 @@ const Direction = {
     RIGHT: [0,1],
     DOWN: [1,0]
 };
+
+function logDir(dir) {
+    switch (dir) {
+        case Direction.LEFT:
+            console.log("LEFT"); break;
+        case Direction.UP:
+            console.log("UP"); break;
+        case Direction.RIGHT:
+            console.log("RIGHT"); break;
+        case Direction.DOWN:
+            console.log("DOWN"); break;
+        default:
+            console.log("NONE"); break;
+    }
+}
 
 const ALL_DIR = [Direction.LEFT, Direction.UP, Direction.RIGHT, Direction.DOWN];
 
@@ -86,14 +106,17 @@ function calcSides(zone, withInner) {
                     const diff = Math.abs(lastDirIndex - ALL_DIR.indexOf(dir));
                     sides += diff % 2 == 0 ? diff : 1
                     lastDir = dir;
-                    //console.log(nextPoint, sides);
                     break;
                 }
             }
             if (k === 3) throw new Error("Imposible");
         }
         parcelles.push(nextPoint);
-    } while (nextPoint[0] != topLeftPoint[0] || nextPoint[1] != topLeftPoint[1]);
+        if (nextPoint[0] === topLeftPoint[0] && nextPoint[1] === topLeftPoint[1]) {
+            if (lastDir == Direction.UP) break;
+            if (lastDir === Direction.LEFT && (topLeftPoint[0] === input.length - 1 || input[topLeftPoint[0] + 1][topLeftPoint[1]] != input[topLeftPoint[0]][topLeftPoint[1]])) break;
+        }
+    } while (true);
 
     if (withInner) {
         const [minI, maxI] = parcelles.reduce((tab, point) => {
@@ -126,12 +149,17 @@ function calcSides(zone, withInner) {
             const [x, y] = innerCase[0];
             const tempCopy = [...indexTreated];
             indexTreated = [];
-            const zone2 = getZone(x, y, copy);
+            const zone2 = getZone(x, y, copy, letter);
             innerCase = innerCase.filter(elt => !zone2.some(elt2 => elt[0] === elt2[0] && elt[1] === elt2[1]));
             //console.log(zone2, innerCase);
-            const plusSide = calcSides(zone2, true);
-            //console.log("Inner cotés en plus : " + plusSide);
-            sides += plusSide;
+            if (!zone2.includes(-1)) {
+                const plusSide = calcSides(zone2, true);
+                //console.log("Inner cotés en plus : " + plusSide);
+                sides += plusSide;
+            } else {
+                console.log("Fausse zone");
+            }
+            
             indexTreated = tempCopy;
         }
     }
@@ -145,6 +173,7 @@ let result = 0;
 for (let i = 0 ; i < input.length ; i++) {
     for (let j = 0 ; j < input[i].length ; j++) {
         if (!indexTreated.includes(i + "-" + j)) {
+            console.log("Start at " + i + "-" + j + " : " + input[i][j]);
             const zone = getZone(i, j, input);
             //console.log(input[i][j], zone);
             const sides = calcSides(zone, true);
@@ -159,3 +188,5 @@ console.log(result);
 // > 844430
 // < 1402544
 //!= 1177322
+//!= 876577
+//!= 879544
