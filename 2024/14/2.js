@@ -8,8 +8,8 @@ let input = fs
     .split('\n')
     .map((elt) => elt.split(' '));
 
-const wide = 103;
-const tall = 101;
+const wide = 101;
+const tall = 103;
 let seconds = 0;
 let indexTreated = [];
 
@@ -52,7 +52,7 @@ function getZone(i, j, map) {
   return area;
 }
 
-while (seconds < 15000) {
+while (seconds < 150000) {
   const map = Array.from({ length: tall }, () => Array.from({ length: wide }, () => "."));
 
   for (let line of input) {
@@ -81,8 +81,10 @@ while (seconds < 15000) {
     });
   });
 
-  if (maxCount > 10) console.log("Seconds ", seconds, maxCount);
-  //console.log(map.map((elt) => elt.join('')).join('\n'));
+  if (maxCount > 100) {
+    console.log("Seconds ", seconds, maxCount);
+    console.log(map.map((elt) => elt.join('')).join('\n'));
+  }
   seconds++;
   indexTreated = [];
 }
