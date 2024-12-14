@@ -13,11 +13,6 @@ module.exports = {
 };
 
 let result = 0;
-const epsilon = Math.pow(10, -10);
-
-function test(a1,a2,a3,x,y) {
-    return x * a1 + y * a2 === a3;
-}
 
 for (let machine of input) {
     const tab = machine.split('\n');
@@ -28,27 +23,18 @@ for (let machine of input) {
     const a3 = parseInt(tab[2].split(',')[0].split('=')[1]) + 10000000000000;
     const b3 = parseInt(tab[2].split('=')[2]) + 10000000000000;
 
-    const yTemp = (new Decimal(a3 * b1).dividedBy(a1).minus(b3)).dividedBy(new Decimal(b1 * a2).dividedBy(a1).minus(b2));
-    const xTemp = new Decimal(a3 - yTemp * a2).dividedBy(a1);
-    if (xTemp > 0 && yTemp > 0 && yTemp % 1 == 0 && xTemp % 1 == 0) {
-        result += 3 * parseInt(xTemp) + parseInt(yTemp);
-    }
-    const y = (((a3 * b1) / a1) - b3) / (((b1 * a2) / a1) - b2);
-    //console.log(yTemp, y);
+    const u = (a3 * b1 - b3 * a1 ) * a1;
+    const v = a1 * (b1 * a2 - b2 * a1);
+    const y = u / v;
     const x = (a3 - y * a2) / a1;
-    
-    let yes = false;
-    if (x > 0 && y > 0 && test(a1, a2, a3, Math.round(x), Math.round(y))) {
-        //result += 3 * Math.round(x) + Math.round(y);
-        yes = true;
+    if (Math.abs(y - Math.round(y)) < 0.001 && Math.abs(y - Math.round(y)) > 0) {
+        console.log("Alerte", a1,b1,a2,b2,a3,b3, x, y);
+        console.log(Math.round(x) * a1 + Math.round(y) * a2, a3);
     }
-
-    if (y > 0 && Math.abs(y - Math.round(y)) < epsilon && Math.abs(x - Math.round(x)) < epsilon) {
-        if (Math.abs(x - Math.round(x)) > epsilon) console.log("Alerte : ", x, y, x % 1, epsilon);
-       
-    } else if (yes) {
-        console.log("alerte");
-        //console.log(x, y, Math.abs(y - Math.round(y)), yTemp)
+    
+    if (y > 0 && Math.abs(y - Math.round(y)) < 0.001 && x > 0 && Math.abs(x - Math.round(x)) < 0.001) {
+        //console.log(x, y);
+        result += 3 * Math.round(x) + Math.round(y);
     }
 }
 
@@ -57,4 +43,7 @@ console.log(result);
 // > 70103715469585
 // > 70025590469496
 // < 102334003088601
+// = 102255878088512
 // ! 102255878088503
+// ! 97777063146393
+// ! 97698938146304

@@ -12,7 +12,6 @@ module.exports = {
 };
 
 let result = 0;
-const epsilon = Math.pow(10, -10);
 
 for (let machine of input) {
     const tab = machine.split('\n');
@@ -23,11 +22,13 @@ for (let machine of input) {
     const a3 = parseInt(tab[2].split(',')[0].split('=')[1]);
     const b3 = parseInt(tab[2].split('=')[2]);
     
-    const y = (((a3 * b1) / a1) - b3) / (((b1 * a2) / a1) - b2);
+    //const y = (((a3 * b1) / a1) - b3) / (((b1 * a2) / a1) - b2);
+    const u = (a3 * b1 - b3 * a1 ) * a1;
+    const v = a1 * (b1 * a2 - b2 * a1);
+    const y = u / v;
     const x = (a3 - y * a2) / a1;
 
-    if (y > 0 && Math.abs(y - Math.round(y)) < epsilon) {
-        if (Math.abs(y - Math.round(y)) > epsilon) console.log("Alerte : ", x, y, x % 1, epsilon);
+    if (y > 0 && y % 1 === 0) {
         result += 3 * Math.round(x) + Math.round(y);
     }
 }
