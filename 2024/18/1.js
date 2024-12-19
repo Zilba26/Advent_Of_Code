@@ -8,57 +8,60 @@ let input = fs
     .split('\n')
     .map(elt => elt.split(',').map(elt => parseInt(elt)));
 
-const mapLength = 7;
-const map = Array.from({ length: mapLength }, () => Array.from({ length: mapLength }, () => "."));
+const mapLength = 71;
+const tab = Array.from({ length: mapLength }, () => Array.from({ length: mapLength }, () => "."));
 
-for (let i = 0 ; i < 12 ; i++) {
+for (let i = 0 ; i < 1024 ; i++) {
     const coord = input[i];
-    map[coord[1]][coord[0]] = "#";
+    tab[coord[1]][coord[0]] = "#";
 }
 
-function findNextPaths(path) {
-    const lastPoint = path[path.length - 1];
-    let tab = [];
-    if (lastPoint[0] > 0 && map[lastPoint[0] - 1][lastPoint[1]] === "."
-        && !path.some(p => p[0] === lastPoint[0] - 1 && p[1] === lastPoint[1])) {
-            tab.push([...path, [lastPoint[0] - 1, lastPoint[1]]]);
-    }
-    if (lastPoint[0] < map.length - 1 && map[lastPoint[0] + 1][lastPoint[1]] === "."
-        && !path.some(p => p[0] === lastPoint[0] + 1 && p[1] === lastPoint[1])) {
-            tab.push([...path, [lastPoint[0] + 1, lastPoint[1]]]);
-    }
-    if (lastPoint[1] > 0 && map[lastPoint[0]][lastPoint[1] - 1] === "."
-        && !path.some(p => p[0] === lastPoint[0] && p[1] === lastPoint[1] - 1)) {
-            tab.push([...path, [lastPoint[0], lastPoint[1] - 1]]);
-    }
-    if (lastPoint[1] < map[0].length - 1 && map[lastPoint[0]][lastPoint[1] + 1] === "."
-        && !path.some(p => p[0] === lastPoint[0] && p[1] === lastPoint[1] + 1)) {
-            tab.push([...path, [lastPoint[0], lastPoint[1] + 1]]);
-    }
-    return tab;
-}
+const map = new Map().set("0,0", 0);
+const Q = Array.from({ length: mapLength * mapLength }, (_, index) => tab[Math.floor(index / mapLength)][index % mapLength] === "#" ? null : Math.floor(index / mapLength) + "," + (index % mapLength)).filter(elt => elt !== null);
 
-let paths = [[[0,0]]];
-let resultPaths = undefined;
-
-while (resultPaths == undefined && paths.length > 0) {
-    const tab = [];
-    for (let path of paths) {
-        const nextPaths = findNextPaths(path);
-        for (let nextPath of nextPaths) {
-            const lastPoint = nextPath[nextPath.length - 1];
-            if (lastPoint[0] === input.length - 1 && lastPoint[1] === input[input.length-1].length - 1) {
-                resultPaths = nextPath;
-                break;
-            } else {
-                tab.push(nextPath);
+while(Q.length > 0) {
+    let s1;
+    for (let s of Q) {
+        if (map.has(s)) {
+            if (s1 === undefined || map.get(s) < map.get(s1)) {
+                s1 = s;
             }
         }
-        if (resultPaths != undefined) break;
     }
-    paths = tab;
-    console.log(JSON.stringify(paths), '\n')
+    if (s1 === undefined) break;
+    Q.splice(Q.indexOf(s1), 1);
+    const s1Coord = s1.split(',').map(elt => parseInt(elt));
+    if (s1Coord[0] > 0 && tab[s1Coord[0] - 1][s1Coord[1]] == ".") {
+        const s2 = (s1Coord[0] - 1) + "," + s1Coord[1];
+        const s2Value = map.get(s2) ?? Infinity;
+        if (s2Value > map.get(s1) + 1) {
+            map.set(s2, map.get(s1) + 1);
+        }
+    }
+    if (s1Coord[0] < mapLength - 1 && tab[s1Coord[0] + 1][s1Coord[1]] == ".") {
+        const s2 = (s1Coord[0] + 1) + "," + s1Coord[1];
+        const s2Value = map.get(s2) ?? Infinity;
+        if (s2Value > map.get(s1) + 1) {
+            map.set(s2, map.get(s1) + 1);
+        }
+    }
+    if (s1Coord[1] > 0 && tab[s1Coord[0]][s1Coord[1] - 1] == ".") {
+        const s2 = s1Coord[0] + "," + (s1Coord[1] - 1);
+        const s2Value = map.get(s2) ?? Infinity;
+        if (s2Value > map.get(s1) + 1) {
+            map.set(s2, map.get(s1) + 1);
+        }
+    }
+    if (s1Coord[1] < mapLength - 1 && tab[s1Coord[0]][s1Coord[1] + 1] == ".") {
+        const s2 = s1Coord[0] + "," + (s1Coord[1] + 1);
+        const s2Value = map.get(s2) ?? Infinity;
+        if (s2Value > map.get(s1) + 1) {
+            map.set(s2, map.get(s1) + 1);
+        }
+    }
+    //console.log(map.entries().toArray().map(elt => elt.join(';')).join('|'));
 }
+console.log(map.entries().toArray().map(elt => elt.join(';')).join('|'));
 
-console.log(map.map(elt => elt.join('')).join('\n'));
-console.log(resultPaths);
+//console.log(tab.tab(elt => elt.join('')).join('\n'));
+console.log(map.get(mapLength - 1 + "," + (mapLength - 1)));
